@@ -1,20 +1,24 @@
 # Dataset
 data_path: '../../dataset/PolygonsBenchmark/'
-dataset:
-  archae:
-    train_file: archaeology_train_v8.npz
-    test_file: archaeology_test_v8.npz
-  building:
-    train_file: buildings_train_v8.npz
-    test_file: buildings_test_v8.npz
+# archae, building
+dataset: archae
+archae:
+  train: archaeology_train_v8.npz
+  test: archaeology_test_v8.npz
+building:
+  train: buildings_train_v8.npz
+  test: buildings_test_v8.npz
 # Training Config
-epoch: 100
-batch_size: 128
+epoch: 250
+batch_size: 256
+patience: 20
 lr: 0.01
-step: 10
 gamma: 0.1
-patience: 25
+step: 10
 save: ./saved/
+train: True
+load_state: False
+checkpoint: building_cnn_raw_geoms
 # Model
 in_channels: 5
 out_channels: 10
