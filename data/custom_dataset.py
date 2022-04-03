@@ -9,23 +9,25 @@ class ArchaeDataset(Dataset):
         self.fixed_tensor = fixed_tensor
         self.transform = transform
         self.sample_dict = np.load(self.root_dir, allow_pickle=True)
-
+        
+        if self.fixed_tensor:
+            self.geoms = torch.tensor(self.sample_dict['fixed_size_geoms'])
+        else:
+            self.geoms = torch.tensor(self.sample_dict['geoms'])
+             
+        self.feature_type = torch.tensor(self.sample_dict['feature_type'])
+            
     def __len__(self):
         return len(self.sample_dict['feature_type'])
     
     def __getitem__(self, idx):
-        if self.fixed_tensor:
-            geoms = self.sample_dict['fixed_size_geoms'][idx]
-        else:
-            geoms = self.sample_dict['geoms'][idx]
-        
-        feature_type = self.sample_dict['feature_type'][idx] 
+        geoms = self.geoms[idx].float().transpose(0, -1)
+        feature_type = self.feature_type[idx] 
         
         if self.transform:
             pass
         
-        sample = {'geoms': torch.tensor(geoms).float().transpose(0, -1), 
-                  'feature_type': torch.tensor(feature_type)}
-        
+        sample = {'geoms': geoms,
+                  'feature_type': feature_type}
         return sample
     
