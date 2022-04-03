@@ -60,7 +60,7 @@ def validation(loader, model, criterion):
     metr = Metrics(config['out_channels'])
     model.eval()
     for idx, data in enumerate(loader):
-        x = data['geoms'].to(torch.device(device)).transpose(1,-1)
+        x = data['geoms'].to(torch.device(device))
         y = data['feature_type'].to(torch.device(device))
 
         logits = model(x)
