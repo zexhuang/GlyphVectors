@@ -2,6 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from data.custom_dataset import PolygonDataset
+from data.transform import ToCoordinate
 from config.config_loader import load_config
 from model.net import CNN
 from utils.metric import Metrics
@@ -81,11 +82,11 @@ if __name__ == "__main__":
     training_data = PolygonDataset(root_dir=config['data_path']
                                    +config[dataset]['train'], 
                                    dataset=dataset,
-                                   fixed_tensor=True)
+                                   transform=ToCoordinate())
     test_data = PolygonDataset(root_dir=config['data_path']
                                +config[dataset]['test'], 
                                dataset=dataset,
-                               fixed_tensor=True)
+                               transform=ToCoordinate())
         
     train_loader = DataLoader(training_data, 
                               batch_size=config['batch_size'], 
@@ -97,9 +98,9 @@ if __name__ == "__main__":
     model, criterion, \
     optimizer, scheduler, \
     monitor, epoch = build_model(CNN(in_channels=config['in_channels'], 
-                                     out_channels=config['out_channels']),
-                                     config['load_state'],
-                                     config['checkpoint'])
+                                         out_channels=config['out_channels']),
+                                         config['load_state'],
+                                         config['checkpoint'])
     
     early_stopping = EarlyStopping(path=config['save']
                                    +f'{config["checkpoint"]}.pth', 
