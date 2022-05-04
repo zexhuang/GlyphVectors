@@ -1,8 +1,8 @@
 import torch
 from torch.utils.data import DataLoader
 
-from data.custom_dataset import PolygonDataset
-from data.transform import ToCoordinate
+from data.torch_dataset import LetterVectors
+from data.transform import ToFixedTensor
 from config.config_loader import load_config
 from model.net import CNN
 from utils.metric import Metrics
@@ -40,8 +40,8 @@ def train(loader, model, criterion, optimizer):
     for idx, data in enumerate(loader):
         optimizer.zero_grad()         # Clear gradients
 
-        x = data['geoms'].to(torch.device(device), dtype=torch.float)
-        y = data['feature_type'].to(torch.device(device))
+        x = data['geom'].to(torch.device(device), dtype=torch.float)
+        y = data['char'].to(torch.device(device))
         
         logits = model(x)             # Feedforward
         loss = criterion(logits, y)   # Compute gradients
@@ -61,8 +61,8 @@ def validation(loader, model, criterion):
     metr = Metrics(config['out_channels'])
     model.eval()
     for idx, data in enumerate(loader):
-        x = data['geoms'].to(torch.device(device), dtype=torch.float)
-        y = data['feature_type'].to(torch.device(device))
+        x = data['geom'].to(torch.device(device), dtype=torch.float)
+        y = data['char'].to(torch.device(device))
 
         logits = model(x)
         loss = criterion(logits, y)
@@ -77,21 +77,17 @@ def validation(loader, model, criterion):
 
 
 if __name__ == "__main__": 
-    # dataset
-    dataset = config['dataset']
-    training_data = PolygonDataset(root_dir=config['data_path']
-                                   +config[dataset]['train'], 
-                                   dataset=dataset,
-                                   transform=ToCoordinate())
-    test_data = PolygonDataset(root_dir=config['data_path']
-                               +config[dataset]['test'], 
-                               dataset=dataset,
-                               transform=ToCoordinate())
+    training_data = LetterVectors(root_dir=config['data_folder']
+                                  +config['train_set'], 
+                                  transform=ToFixedTensor(256))
+    val_data = LetterVectors(root_dir=config['data_folder']
+                              +config['val_set'], 
+                              transform=ToFixedTensor(256))
         
     train_loader = DataLoader(training_data, 
                               batch_size=config['batch_size'], 
                               shuffle=True)
-    test_loader = DataLoader(test_data, 
+    val_loader = DataLoader(val_data, 
                              batch_size=config['batch_size'], 
                              shuffle=True)
     # build model
@@ -114,7 +110,7 @@ if __name__ == "__main__":
             print(f'At Epoch [{epoch}/{EPOCH}]:')
             # Training & Validation
             train(train_loader, model, criterion, optimizer)
-            metr, loss = validation(test_loader, model, criterion)
+            metr, loss = validation(val_loader, model, criterion)
             scheduler.step(loss)
             # Early-stopping    
             early_stopping(loss, metr.cm, model, optimizer, epoch)
@@ -122,5 +118,5 @@ if __name__ == "__main__":
                 print("Early stopping")
                 break 
         else:
-            validation(test_loader, model, criterion)
+            validation(val_loader, model, criterion)
             break

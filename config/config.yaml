@@ -1,13 +1,7 @@
 # Dataset
-data_path: '../../dataset/PolygonsBenchmark/'
-# archae, building
-dataset: building
-archae:
-  train: archaeology_train_v8.npz
-  test: archaeology_test_v8.npz
-building:
-  train: buildings_train_v8.npz
-  test: buildings_test_v8.npz
+data_folder: '../../dataset/LetterVectors/'
+train_set: train_augmented.npz
+val_set: val_augmented.npz
 # Training Config
 epoch: 250
 batch_size: 512
@@ -16,9 +10,9 @@ lr: 0.01
 gamma: 0.1
 step: 10
 save: ./saved/
-train: False
-load_state: True
-checkpoint: building_cnn_raw_geoms
+train: True
+load_state: False
+checkpoint: letter_vectors_cnn_augmented
 # Model
-in_channels: 5
-out_channels: 9
+in_channels: 2
+out_channels: 26
