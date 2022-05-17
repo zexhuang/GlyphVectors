@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader
 from data.torch_dataset import LetterVectors
 from data.transform import ToFixedTensor
 from config.config_loader import load_config
-from model.net import CNN
+from model.net import CNN, Deepset
 from utils.metric import Metrics
 from utils.pytorchtools import EarlyStopping
 
@@ -41,7 +41,7 @@ def train(loader, model, criterion, optimizer):
         optimizer.zero_grad()         # Clear gradients
 
         x = data['geom'].to(torch.device(device), dtype=torch.float)
-        y = data['char'].to(torch.device(device))
+        y = data['value'].to(torch.device(device))
         
         logits = model(x)             # Feedforward
         loss = criterion(logits, y)   # Compute gradients
@@ -62,7 +62,7 @@ def validation(loader, model, criterion):
     model.eval()
     for idx, data in enumerate(loader):
         x = data['geom'].to(torch.device(device), dtype=torch.float)
-        y = data['char'].to(torch.device(device))
+        y = data['value'].to(torch.device(device))
 
         logits = model(x)
         loss = criterion(logits, y)
@@ -79,22 +79,23 @@ def validation(loader, model, criterion):
 if __name__ == "__main__": 
     training_data = LetterVectors(root_dir=config['data_folder']
                                   +config['train_set'], 
-                                  transform=ToFixedTensor(256))
+                                  transform=ToFixedTensor(config['embedding']))
     val_data = LetterVectors(root_dir=config['data_folder']
-                              +config['val_set'], 
-                              transform=ToFixedTensor(256))
+                             +config['val_set'], 
+                             transform=ToFixedTensor(config['embedding']))
         
     train_loader = DataLoader(training_data, 
                               batch_size=config['batch_size'], 
                               shuffle=True)
     val_loader = DataLoader(val_data, 
-                             batch_size=config['batch_size'], 
-                             shuffle=True)
+                            batch_size=config['batch_size'], 
+                            shuffle=True)
     # build model
     model, criterion, \
     optimizer, scheduler, \
-    monitor, epoch = build_model(CNN(in_channels=config['in_channels'], 
-                                         out_channels=config['out_channels']),
+    monitor, epoch = build_model(Deepset(in_channels=config['in_channels'], 
+                                         out_channels=config['out_channels'],
+                                         embedding=config['latent_space']),
                                          config['load_state'],
                                          config['checkpoint'])
     

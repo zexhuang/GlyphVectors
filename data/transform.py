@@ -10,7 +10,8 @@ class ToFixedTensor(object):
         self.embed_size = embed_size
         
     def __call__(self, sample):
-        fixed_tensor = torch.zeros(self.embed_size, 2)
-        dim = sample.size(0)
-        fixed_tensor[:dim, :2] = sample
+        n_dim = sample.size(0)      # feature dim
+        m_dim = sample.size(1)      # number dim
+        fixed_tensor = torch.zeros(n_dim, self.embed_size)
+        fixed_tensor[:, :m_dim] = sample
         return fixed_tensor

@@ -1,10 +1,11 @@
 # Dataset
 data_folder: '../../dataset/LetterVectors/'
-train_set: train_augmented.npz
-val_set: val_augmented.npz
+train_set: augmented_sans_serif.npz 
+val_set: test_sans_serif.npz
+embedding: 3000
 # Training Config
-epoch: 250
-batch_size: 512
+epoch: 500
+batch_size: 24
 patience: 25
 lr: 0.01
 gamma: 0.1
@@ -12,7 +13,8 @@ step: 10
 save: ./saved/
 train: True
 load_state: False
-checkpoint: letter_vectors_cnn_augmented
+checkpoint: deepset/augmented_sans_serif_set
 # Model
-in_channels: 2
-out_channels: 26
+in_channels: 3
+out_channels: 10
+latent_space: 4096
