@@ -1,20 +1,21 @@
-# Dataset
-data_folder: '../../dataset/LetterVectors/'
-train_set: augmented_sans_serif.npz 
-val_set: test_sans_serif.npz
-embedding: 3000
-# Training Config
+# dataset
+data_dir: data/glyph/
+train_set: aug_serif.pkl
+val_set: test_serif.pkl
+set_size: 1500
+# train config
 epoch: 500
-batch_size: 24
+batch_size: 64
 patience: 25
 lr: 0.01
 gamma: 0.1
 step: 10
-save: ./saved/
 train: True
 load_state: False
-checkpoint: deepset/augmented_sans_serif_set
-# Model
+save: saved/transformer/
+checkpoint: serif
+# model
+model: transformer 
 in_channels: 3
 out_channels: 10
-latent_space: 4096
+latent_dim: 2048

@@ -1,17 +1,24 @@
+from tkinter.messagebox import NO
+from matplotlib.pyplot import axis
 import torch
 from torch.utils.data import Dataset
 
 import numpy as np
 
-class LetterVectors(Dataset):
-    def __init__(self, root_dir, transform=None):
-        super(Dataset).__init__()
-        self.root_dir = root_dir
+class GlyphGeom(Dataset):
+    def __init__(self, data_dir, 
+                 dataframe=None, 
+                 transform=None):
+        self.data_dir = data_dir
         self.transform = transform
 
-        self.geom = np.load(self.root_dir, allow_pickle=True)["geom"]
-        self.value = np.load(self.root_dir, allow_pickle=True)["value"]
-        
+        if dataframe is None:
+            dataframe = np.load(self.data_dir, allow_pickle=True)
+
+        self.geom = dataframe["geom"].to_numpy()
+        self.value = dataframe["value"].to_numpy()
+        self.type = dataframe["type"].to_numpy()
+            
     def __len__(self):
         return len(self.value)
     
@@ -31,12 +38,14 @@ class LetterVectors(Dataset):
         else:
             geom = exter
         
-        value = torch.tensor(int(self.value[idx]))
-        
         if self.transform:
             geom = self.transform(geom)
+            
+        value = torch.tensor(int(self.value[idx]))    
         
         sample = {'geom': geom,
                   'value': value}
         return sample
+
+    
     

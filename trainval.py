@@ -1,24 +1,38 @@
 import torch
 from torch.utils.data import DataLoader
 
-from data.torch_dataset import LetterVectors
+from data.torch_dataset import GlyphGeom
 from data.transform import ToFixedTensor
 from config.config_loader import load_config
-from model.net import CNN, Deepset
+from model.net import CNN, Deepset, GCNN, SetTransformer
 from utils.metric import Metrics
 from utils.pytorchtools import EarlyStopping
 
 config = load_config()
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-
-def build_model(nn, load_state=False, name=None):
-    model = nn
+def build_model(nn, load_state=False, checkpoint_name=None):
+    if nn == 'cnn':
+        model = CNN(config['in_channels'],
+                    config['out_channels'])
+    elif nn == 'deepset':
+        model = Deepset(config['in_channels'],
+                        config['out_channels'],
+                        config['latent_dim'])
+    elif nn == 'gcnn':
+        model = GCNN(config['in_channels'],
+                     config['out_channels'],
+                     config['latent_dim'])
+    elif nn == 'transformer':
+        model = SetTransformer(config['in_channels'],
+                               config['out_channels'],
+                               config['latent_dim'])
+    
     epoch = 1
     monitor = None
     
     if load_state:
-        checkpoint=torch.load(config['save'] + f'{name}.pth')
+        checkpoint=torch.load(config['save'] + f'{checkpoint_name}.pth')
         model.load_state_dict(checkpoint['model_state'])
         monitor = checkpoint['monitor']
         epoch = checkpoint['epoch']
@@ -77,12 +91,11 @@ def validation(loader, model, criterion):
 
 
 if __name__ == "__main__": 
-    training_data = LetterVectors(root_dir=config['data_folder']
-                                  +config['train_set'], 
-                                  transform=ToFixedTensor(config['embedding']))
-    val_data = LetterVectors(root_dir=config['data_folder']
-                             +config['val_set'], 
-                             transform=ToFixedTensor(config['embedding']))
+    # dataset
+    training_data = GlyphGeom(data_dir=config['data_dir']+config['train_set'], 
+                                transform=ToFixedTensor(config['set_size']))
+    val_data = GlyphGeom(data_dir=config['data_dir']+config['val_set'], 
+                            transform=ToFixedTensor(config['set_size']))
         
     train_loader = DataLoader(training_data, 
                               batch_size=config['batch_size'], 
@@ -93,31 +106,30 @@ if __name__ == "__main__":
     # build model
     model, criterion, \
     optimizer, scheduler, \
-    monitor, epoch = build_model(Deepset(in_channels=config['in_channels'], 
-                                         out_channels=config['out_channels'],
-                                         embedding=config['latent_space']),
-                                         config['load_state'],
-                                         config['checkpoint'])
+    monitor, epoch = build_model(config['model'],
+                                 config['load_state'],
+                                 config['checkpoint'])
     
     early_stopping = EarlyStopping(path=config['save']
                                    +f'{config["checkpoint"]}.pth', 
                                    best_score=monitor,
                                    patience=config['patience'], 
                                    verbose=True)
+
     # training loop
-    EPOCH = config['epoch']
-    for epoch in range(1, EPOCH+1):
-        if config['train']:
-            print(f'At Epoch [{epoch}/{EPOCH}]:')
+    if config['train']:
+        EPOCH = config['epoch']
+        for ep in range(epoch, EPOCH+1):
+            print(f'At Epoch [{ep}/{EPOCH}]:')
             # Training & Validation
             train(train_loader, model, criterion, optimizer)
             metr, loss = validation(val_loader, model, criterion)
             scheduler.step(loss)
+            
             # Early-stopping    
-            early_stopping(loss, metr.cm, model, optimizer, epoch)
+            early_stopping(loss, metr.cm, model, optimizer, ep)
             if early_stopping.early_stop:
                 print("Early stopping")
                 break 
-        else:
-            validation(val_loader, model, criterion)
-            break
+    else:
+        validation(val_loader, model, criterion)
