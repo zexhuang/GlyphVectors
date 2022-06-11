@@ -48,7 +48,7 @@ class CNN(nn.Module):
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
-        x = F.adaptive_max_pool1d(x, 1).squeeze()
+        x = F.adaptive_max_pool1d(x, 1).squeeze(dim=-1)
         return self.cls(x)
     
 
@@ -108,7 +108,7 @@ class Deepset(nn.Module):
         x = self.equi_layer2(x)
         x = self.equi_layer3(x)
         
-        x = F.adaptive_max_pool1d(x, 1).squeeze()
+        x = F.adaptive_max_pool1d(x, 1).squeeze(dim=-1)
         return self.inva_layer(x)  
 
 
@@ -164,7 +164,7 @@ class GCNN(nn.Module):
         x = torch.cat((x1, x2), dim=1) 
         x = self.conv3(x)
         
-        x = F.adaptive_max_pool1d(x, 1).squeeze()
+        x = F.adaptive_max_pool1d(x, 1).squeeze(dim=-1)
         return self.cls(x)
     
     
@@ -210,6 +210,26 @@ class ISAB(nn.Module):
         H = self.mab0(self.I.repeat(X.size(0), 1, 1), X)
         return self.mab1(X, H)
     
+class SAB(nn.Module):
+    def __init__(self, dim_in, dim_out, num_heads, ln=False):
+        super(SAB, self).__init__()
+        self.mab = MAB(dim_in, dim_in, dim_out, num_heads, ln=ln)
+
+    def forward(self, X):
+        return self.mab(X, X)
+    
+    
+class PMA(nn.Module):
+    def __init__(self, dim, num_heads, num_seeds, ln=False):
+        super(PMA, self).__init__()
+        self.S = nn.Parameter(torch.Tensor(1, num_seeds, dim))
+        nn.init.xavier_uniform_(self.S)
+        self.mab = MAB(dim, dim, dim, num_heads, ln=ln)
+        
+    def forward(self, X):
+        return self.mab(self.S.repeat(X.size(0), 1, 1), X)
+    
+
 class SetTransformer(nn.Module):
     def __init__(self, dim_input, dim_output, dim_hidden, 
                  num_heads=4, num_inds=32, ln=True):
@@ -217,17 +237,13 @@ class SetTransformer(nn.Module):
         self.enc = nn.Sequential(ISAB(dim_input, dim_hidden, num_heads, num_inds, ln=ln),
                                  ISAB(dim_hidden, dim_hidden, num_heads, num_inds, ln=ln))
         
-        self.cls = nn.Sequential(
-            nn.Linear(dim_hidden, 32), 
-            nn.BatchNorm1d(32),
-            nn.ReLU(inplace=True),
-            nn.Linear(32, dim_output))
+        self.dec = nn.Sequential(PMA(dim_hidden, num_heads, num_seeds=1, ln=ln),
+                                 SAB(dim_hidden, dim_hidden, num_heads, ln=ln),
+                                 SAB(dim_hidden, dim_hidden, num_heads, ln=ln),
+                                 nn.Linear(dim_hidden, dim_output))
         
     def forward(self, x):
         x = torch.permute(x, (0, -1, 1))
         x = self.enc(x)
-
-        x = torch.permute(x, (0, -1, 1))
-        x = F.adaptive_max_pool1d(x, 1).squeeze()
-        x = self.cls(x)
-        return x
+        x = self.dec(x)
+        return x.squeeze(dim=1)

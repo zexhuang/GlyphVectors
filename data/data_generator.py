@@ -145,6 +145,7 @@ class DatasetGenerator(object):
 # Glyph Geom
 path = '../../dataset/'                 
 ttfs = glob.glob(path + "ttfs/*")
+file_path = 'data/glyph/'
 
 serif_ttfs = glob.glob(ttfs[0] + '/*') 
 serif_ttfs, test_serif_ttfs = train_test_split(serif_ttfs, 
@@ -155,23 +156,42 @@ sans_serif_ttfs, \
 test_sans_serif_ttfs = train_test_split(sans_serif_ttfs, 
                                         test_size=0.2)
 
-letters = {'0':0, '1':1, '2':2, '3':3, '4':4, 
+digits = {'0':0, '1':1, '2':2, '3':3, '4':4, 
            '5':5, '6':6, '7':7, '8':8, '9':9}
 
-file_path = 'data/glyph/'
-sans_serif_set = DatasetGenerator(sans_serif_ttfs, letters)
+sans_serif_set = DatasetGenerator(sans_serif_ttfs, digits)
 sans_df = sans_serif_set(transform=Augment())
 sans_df.to_pickle(file_path+"sans_serif.pkl")
 
-test_sans_serif_set = DatasetGenerator(test_sans_serif_ttfs, letters)
+test_sans_serif_set = DatasetGenerator(test_sans_serif_ttfs, digits)
 test_sans_df = test_sans_serif_set(transform=Augment())
 test_sans_df.to_pickle(file_path+"test_sans_serif.pkl")
 
-serif_set = DatasetGenerator(serif_ttfs, letters)
+serif_set = DatasetGenerator(serif_ttfs, digits)
 serif_df = serif_set(transform=Augment())
 serif_df.to_pickle(file_path+"serif.pkl")
 
-test_serif_set = DatasetGenerator(test_serif_ttfs, letters)
+test_serif_set = DatasetGenerator(test_serif_ttfs, digits)
 test_serif_df = test_serif_set(transform=Augment())
 test_serif_df.to_pickle(file_path+"test_serif.pkl")
 
+similar_glyphs = {'0':0, 'O':1, 
+                  '1':2, 'I':3,
+                  '2':4, 'Z':5, 
+                  '8':6, 'B':7}
+
+sans_serif_set = DatasetGenerator(sans_serif_ttfs, similar_glyphs)
+sans_df = sans_serif_set(transform=Augment())
+sans_df.to_pickle(file_path+"sans_serif_robust.pkl")
+
+test_sans_serif_set = DatasetGenerator(test_sans_serif_ttfs, similar_glyphs)
+test_sans_df = test_sans_serif_set(transform=Augment())
+test_sans_df.to_pickle(file_path+"test_sans_serif_robust.pkl")
+
+serif_set = DatasetGenerator(serif_ttfs, similar_glyphs)
+serif_df = serif_set(transform=Augment())
+serif_df.to_pickle(file_path+"serif_robust.pkl")
+
+test_serif_set = DatasetGenerator(test_serif_ttfs, similar_glyphs)
+test_serif_df = test_serif_set(transform=Augment())
+test_serif_df.to_pickle(file_path+"test_serif_robust.pkl")

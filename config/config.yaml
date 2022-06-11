@@ -1,7 +1,7 @@
 # dataset
 data_dir: data/glyph/
-train_set: aug_serif.pkl
-val_set: test_serif.pkl
+train_set: sans_serif.pkl
+val_set: test_sans_serif.pkl
 set_size: 1500
 # train config
 epoch: 500
@@ -10,12 +10,12 @@ patience: 25
 lr: 0.01
 gamma: 0.1
 step: 10
-train: True
-load_state: False
-save: saved/transformer/
-checkpoint: serif
+train: False
+load_state: True
+save: saved/
+checkpoint: cnn/serif
 # model
-model: transformer 
+model: cnn 
 in_channels: 3
 out_channels: 10
-latent_dim: 2048
+latent_dim: 512 
