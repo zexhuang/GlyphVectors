@@ -11,6 +11,7 @@ from utils.pytorchtools import EarlyStopping
 config = load_config()
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
+
 def build_model(nn, load_state=False, checkpoint_name=None):
     if nn == 'cnn':
         model = CNN(config['in_channels'],
@@ -27,12 +28,10 @@ def build_model(nn, load_state=False, checkpoint_name=None):
         model = SetTransformer(config['in_channels'],
                                config['out_channels'],
                                config['latent_dim'])
-    
     epoch = 1
     monitor = None
-    
     if load_state:
-        checkpoint=torch.load(config['save'] + f'{checkpoint_name}.pth')
+        checkpoint = torch.load(config['save'] + f'{checkpoint_name}.pth')
         model.load_state_dict(checkpoint['model_state'])
         monitor = checkpoint['monitor']
         epoch = checkpoint['epoch']
@@ -40,11 +39,12 @@ def build_model(nn, load_state=False, checkpoint_name=None):
     model.to(torch.device(device))
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=config['lr'])
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 
-                                                           mode='min',
-                                                           factor=config['gamma'],
-                                                           patience=config['step'],
-                                                           verbose=True)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+                                            optimizer=optimizer,
+                                            mode='min',
+                                            factor=config['gamma'],
+                                            patience=config['step'],
+                                            verbose=True)
     return model, criterion, optimizer, scheduler, monitor, epoch
 
 
@@ -56,7 +56,7 @@ def train(loader, model, criterion, optimizer):
 
         x = data['geom'].to(torch.device(device), dtype=torch.float)
         y = data['value'].to(torch.device(device))
-        
+
         logits = model(x)             # Feedforward
         loss = criterion(logits, y)   # Compute gradients
 
@@ -83,40 +83,37 @@ def validation(loader, model, criterion):
 
         metr.update_cm(logits, y)
         metr.update_loss(loss)
-    
     print(f"Avg Valid Loss: {metr.avg_loss():.4f} \n"
           f"Overall Valid Acc: {metr.accuracy():.4f} \n"
-          f"{'-' * 80}") 
+          f"{'-' * 80}")
     return metr, metr.avg_loss()
 
 
-if __name__ == "__main__": 
-    # dataset
-    training_data = GlyphGeom(data_dir=config['data_dir']+config['train_set'], 
-                                transform=ToFixedTensor(config['set_size']))
-    val_data = GlyphGeom(data_dir=config['data_dir']+config['val_set'], 
-                            transform=ToFixedTensor(config['set_size']))
-        
-    train_loader = DataLoader(training_data, 
-                              batch_size=config['batch_size'], 
+if __name__ == "__main__":
+    # Dataset
+    training_data = GlyphGeom(data_dir=config['data_dir']+config['train_set'],
+                              transform=ToFixedTensor(config['set_size']))
+    val_data = GlyphGeom(data_dir=config['data_dir']+config['val_set'],
+                         transform=ToFixedTensor(config['set_size']))
+
+    train_loader = DataLoader(training_data,
+                              batch_size=config['batch_size'],
                               shuffle=True)
-    val_loader = DataLoader(val_data, 
-                            batch_size=config['batch_size'], 
+    val_loader = DataLoader(val_data,
+                            batch_size=config['batch_size'],
                             shuffle=True)
-    # build model
-    model, criterion, \
-    optimizer, scheduler, \
-    monitor, epoch = build_model(config['model'],
-                                 config['load_state'],
-                                 config['checkpoint'])
-    
+    # Build model
+    model, criterion, optimizer, scheduler, monitor, epoch = build_model(
+                                                        config['model'],
+                                                        config['load_state'],
+                                                        config['checkpoint'])
     early_stopping = EarlyStopping(path=config['save']
-                                   +f'{config["checkpoint"]}.pth', 
+                                   + f'{config["checkpoint"]}.pth',
                                    best_score=monitor,
-                                   patience=config['patience'], 
+                                   patience=config['patience'],
                                    verbose=True)
 
-    # training loop
+    # Training loop
     if config['train']:
         EPOCH = config['epoch']
         for ep in range(epoch, EPOCH+1):
@@ -125,11 +122,10 @@ if __name__ == "__main__":
             train(train_loader, model, criterion, optimizer)
             metr, loss = validation(val_loader, model, criterion)
             scheduler.step(loss)
-            
-            # Early-stopping    
+            # Early-stopping
             early_stopping(loss, metr.cm, model, optimizer, ep)
             if early_stopping.early_stop:
                 print("Early stopping")
-                break 
+                break
     else:
         validation(val_loader, model, criterion)

@@ -1,9 +1,9 @@
-# dataset
+# Dataset
 data_dir: data/glyph/
 train_set: sans_serif.pkl
-val_set: test_sans_serif.pkl
+val_set: test_serif.pkl
 set_size: 1500
-# train config
+# Training config
 epoch: 500
 batch_size: 64
 patience: 25
@@ -13,9 +13,9 @@ step: 10
 train: False
 load_state: True
 save: saved/
-checkpoint: cnn/serif
-# model
-model: cnn 
+checkpoint: gcnn/sans_serif
+# Model
+model: gcnn
 in_channels: 3
 out_channels: 10
-latent_dim: 512 
+latent_dim: 2048

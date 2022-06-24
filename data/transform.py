@@ -1,12 +1,15 @@
 import torch
+
+
 class ToFixedTensor(object):
     def __init__(self, embed_size):
         self.embed_size = embed_size
-        
+
     def __call__(self, sample):
-        n_dim = sample.size(0)      # feature dim
-        m_dim = sample.size(1)      # number dim
+        n_dim = sample.size(0)      # Feature dim
+        m_dim = sample.size(1)      # Number dim
         fixed_tensor = torch.zeros(n_dim, self.embed_size)
+
         if m_dim > self.embed_size:
             sample = sample[:, :self.embed_size]
         else:
