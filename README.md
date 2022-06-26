@@ -25,7 +25,7 @@ GlyphVectors
     |    |- glyph
     |    |   |- ...               # dataset glyph geometry.
     |    |- ttfs
-    |    |   |- ...               # list of ttfs to generate glyph polygons.
+    |    |   |- ...               # list of serif and sans serif ttfs to generate glyph polygons.
     |    |- data_generator.py     # dataset class that generates glyph geometries from ttfs.
     |    |- torch_dataset.py      # torch dataset class for glyph geometry. 
     |    |- transform.py          # troch transform functions for data pre-processing.

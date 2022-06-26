@@ -136,19 +136,19 @@ digits = {'0': 0, '1': 1, '2': 2, '3': 3, '4': 4,
 
 sans_serif_set = DatasetGenerator(sans_serif_ttfs, digits)
 sans_df = sans_serif_set(transform=Augment())
-sans_df.to_pickle(file_path + "sans_serif.pkl")
+sans_df.to_pickle(file_path + "sans_trans.pkl")
 
 test_sans_serif_set = DatasetGenerator(test_sans_serif_ttfs, digits)
 test_sans_df = test_sans_serif_set(transform=Augment())
-test_sans_df.to_pickle(file_path + "test_sans_serif.pkl")
+test_sans_df.to_pickle(file_path + "test_sans_trans.pkl")
 
 serif_set = DatasetGenerator(serif_ttfs, digits)
 serif_df = serif_set(transform=Augment())
-serif_df.to_pickle(file_path + "serif.pkl")
+serif_df.to_pickle(file_path + "serif_trans.pkl")
 
 test_serif_set = DatasetGenerator(test_serif_ttfs, digits)
 test_serif_df = test_serif_set(transform=Augment())
-test_serif_df.to_pickle(file_path + "test_serif.pkl")
+test_serif_df.to_pickle(file_path + "test_serif_trans.pkl")
 
 # Dataset Similar
 similar_glyphs = {'0': 0, 'O': 1,
@@ -158,16 +158,16 @@ similar_glyphs = {'0': 0, 'O': 1,
 
 sans_serif_set = DatasetGenerator(sans_serif_ttfs, similar_glyphs)
 sans_df = sans_serif_set(transform=Augment())
-sans_df.to_pickle(file_path + "sans_serif_robust.pkl")
+sans_df.to_pickle(file_path + "sans_similar.pkl")
 
 test_sans_serif_set = DatasetGenerator(test_sans_serif_ttfs, similar_glyphs)
 test_sans_df = test_sans_serif_set(transform=Augment())
-test_sans_df.to_pickle(file_path + "test_sans_serif_robust.pkl")
+test_sans_df.to_pickle(file_path + "test_sans_similar.pkl")
 
 serif_set = DatasetGenerator(serif_ttfs, similar_glyphs)
 serif_df = serif_set(transform=Augment())
-serif_df.to_pickle(file_path + "serif_robust.pkl")
+serif_df.to_pickle(file_path + "serif_similar.pkl")
 
 test_serif_set = DatasetGenerator(test_serif_ttfs, similar_glyphs)
 test_serif_df = test_serif_set(transform=Augment())
-test_serif_df.to_pickle(file_path + "test_serif_robust.pkl")
+test_serif_df.to_pickle(file_path + "test_serif_similar.pkl")
